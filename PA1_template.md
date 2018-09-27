@@ -22,18 +22,17 @@ The variables included in this dataset are:
 There are a total of 17,568 observations in this dataset.
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-options(scipen = 1, digits = 2)
-```
-```{r libraries}
+
+
+```r
 library(lattice)
 ```
 ## Loading and preprocessing the data
 
 The data was loaded from the file:
 
-```{r loading data}
+
+```r
 unzip("activity.zip","activity.csv")
 data<-read.csv("activity.csv")
 ```
@@ -41,42 +40,54 @@ data<-read.csv("activity.csv")
 
 The number of steps per day is calculated and represented by the following histogram.
 
-```{r}
+
+```r
 dataDay<-aggregate(steps~date,data,sum)
 hist(dataDay$steps, xlab="Steps", main="Steps by Day")
-meanDay<-round(mean(dataDay$steps),2)
-medianDay<-median(dataDay$steps)
-
 ```
 
-The mean and median for the steps taken per day are `r meanDay` and `r medianDay` respectively.
+![](PA1_template_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+```r
+meanDay<-round(mean(dataDay$steps),2)
+medianDay<-median(dataDay$steps)
+```
+
+The mean and median for the steps taken per day are 10766.19 and 10765 respectively.
 
 ## What is the average daily activity pattern?
 The following is a time series plot of the 5-minute interval and the average number of steps taken,avergaed across all days.
-```{r}
+
+```r
 stepsInterval <- aggregate(steps ~ interval, data, mean)
 plot(stepsInterval$interval,stepsInterval$steps, type="l", xlab="Interval", ylab="Steps",main="Average Steps per Day by Interval")
-maxInterval <- stepsInterval[which.max(stepsInterval$steps),1]
-
 ```
 
-The  5-minute interval that contains the maximum number of steps, on average across all the days in the dataset, is `r maxInterval`.
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
+maxInterval <- stepsInterval[which.max(stepsInterval$steps),1]
+```
+
+The  5-minute interval that contains the maximum number of steps, on average across all the days in the dataset, is 835.
 
 
 ## Imputing missing values
 
 There are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
-```{r}
+
+```r
 missingValues <- sum(is.na(data$steps))
 ```
-The total number of missing values in the dataset (i.e. the total number of rows with NAs) is `r missingValues`.
+The total number of missing values in the dataset (i.e. the total number of rows with NAs) is 2304.
 
 The `stategy` for imputing missing values (NAs) was to use the mean number of steps for each individual 5-minute interval.
 
 The new dataset, using the orginal dataset with the missing data filled in is created using the following code
 
-```{r}
+
+```r
 data2<-data
 missingdata <- is.na(data2$step)
 meanInterval <- tapply(data2$steps, data2$interval, mean, na.rm=TRUE, simplify = TRUE)
@@ -86,27 +97,54 @@ data2$steps[missingdata] <- meanInterval[as.character(data2$interval[missingdata
 
 This is the histogram of the total number of steps taken each day using the transformed data (calculated missing values). 
 
-```{r}
+
+```r
 dataDay2<-aggregate(steps~date,data2,sum)
 hist(dataDay2$steps, xlab="Steps", main="Steps by Day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
 mean2<-mean(dataDay2$steps)
 median2<-median (dataDay2$steps)
 changemean<-mean(dataDay2$steps)-mean(dataDay$steps)
 changemedian<-median(dataDay2$steps)-median(dataDay$steps)
 ```
-The new mean is `r mean2` and the new median is `r median2`. The changes are not significant. For the mean is `r changemean` and for the median is `r changemedian`.
+The new mean is 10766.19 and the new median is 10766.19. The changes are not significant. For the mean is 0 and for the median is 1.19.
 
 
 ##Are there differences in activity patterns between weekdays and weekends?
 New factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day:
-```{r}
+
+```r
 data2$dayType <- ifelse(weekdays(as.Date(data2$date)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), "Weekday", "Weekend")
 head(data2)
+```
+
+```
+##   steps       date interval dayType
+## 1 1.717 2012-10-01        0 Weekday
+## 2 0.340 2012-10-01        5 Weekday
+## 3 0.132 2012-10-01       10 Weekday
+## 4 0.151 2012-10-01       15 Weekday
+## 5 0.075 2012-10-01       20 Weekday
+## 6 2.094 2012-10-01       25 Weekday
+```
+
+```r
 table(data2$dayType)
 ```
 
+```
+## 
+## Weekday Weekend 
+##   12960    4608
+```
+
 The following is a time series plot of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days.
-```{r}
+
+```r
 mean2data <- aggregate(data2$steps,by=list(data2$dayType,data2$interval), mean)
 names(mean2data)<-c("dayType","interval","average")
 xyplot(average ~ interval | dayType, mean2data, 
@@ -116,5 +154,6 @@ xyplot(average ~ interval | dayType, mean2data,
        ylab="Number of steps",
 	     main="Average number of steps across weekday and weekend days",	 
        layout=c(1,2))
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
